@@ -1,0 +1,54 @@
+name: Update Exchange Rates
+
+on:
+  schedule:
+    - cron: "0 0 * * *"   # every day at 00:00 UTC
+  workflow_dispatch:        # allow manual trigger from GitHub UI
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Fetch latest rates & generate JSON files
+        run: python fetch_rates.py
+
+      - name: Set up Node.js (for npm publish)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Bump npm version to today's date
+        run: |
+          TODAY=$(date -u +%Y-%m-%d)
+          # Use date as npm version (e.g. 2026.4.29)
+          VERSION=$(date -u +%Y.%-m.%-d)
+          npm version $VERSION --no-git-tag-version --allow-same-version || true
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "TODAY=$TODAY" >> $GITHUB_ENV
+
+      - name: Publish to npm
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Commit updated JSON files
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add v1/
+          git add package.json
+          git diff --cached --quiet || git commit -m "rates: ${{ env.TODAY }}"
+          git push

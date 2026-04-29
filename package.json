@@ -1,0 +1,29 @@
+{
+  "name": "@irfanokr/currency-api",
+  "version": "2026.4.29",
+  "description": "Free currency exchange rates API — 170+ currencies, any base, no API key, no rate limits. Daily updated.",
+  "keywords": [
+    "currency",
+    "exchange-rate",
+    "forex",
+    "free-api",
+    "no-rate-limit",
+    "pkr",
+    "pakistan",
+    "currency-conversion",
+    "open-source"
+  ],
+  "homepage": "https://github.com/irfanokr/currency-api",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/irfanokr/currency-api.git"
+  },
+  "author": {
+    "name": "irfanokr",
+    "url": "https://github.com/irfanokr"
+  },
+  "license": "Unlicense",
+  "files": [
+    "v1/"
+  ]
+}
