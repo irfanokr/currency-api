@@ -23,39 +23,49 @@
 
 No signup. No API key. Just GET the URL.
 
-### Get all rates for any base currency
+### Base URL (always latest — updated daily)
 
 ```
-GET https://cdn.jsdelivr.net/npm/@irfanokr/currency-api@latest/v1/currencies/{base}.json
+https://cdn.jsdelivr.net/gh/irfanokr/currency-api@main/v1/currencies/{base}.json
 ```
+
+> Currency codes are **lowercase**: `usd`, `pkr`, `eur`, `sar` — not `USD`
 
 **Examples:**
 
 ```bash
-# USD as base — get all currencies priced in USD
-curl https://cdn.jsdelivr.net/npm/@irfanokr/currency-api@latest/v1/currencies/usd.json
+# USD as base — all currencies priced in USD
+curl https://cdn.jsdelivr.net/gh/irfanokr/currency-api@main/v1/currencies/usd.json
 
 # EUR as base
-curl https://cdn.jsdelivr.net/npm/@irfanokr/currency-api@latest/v1/currencies/eur.json
+curl https://cdn.jsdelivr.net/gh/irfanokr/currency-api@main/v1/currencies/eur.json
 
-# PKR as base — get all currencies priced in Pakistani Rupees
-curl https://cdn.jsdelivr.net/npm/@irfanokr/currency-api@latest/v1/currencies/pkr.json
+# PKR as base — all currencies priced in Pakistani Rupees
+curl https://cdn.jsdelivr.net/gh/irfanokr/currency-api@main/v1/currencies/pkr.json
 
-# SAR as base — Saudi Riyal
-curl https://cdn.jsdelivr.net/npm/@irfanokr/currency-api@latest/v1/currencies/sar.json
+# SAR — Saudi Riyal
+curl https://cdn.jsdelivr.net/gh/irfanokr/currency-api@main/v1/currencies/sar.json
+
+# AED — UAE Dirham
+curl https://cdn.jsdelivr.net/gh/irfanokr/currency-api@main/v1/currencies/aed.json
 ```
 
-### Get a specific date (historical)
+### Minified (faster, use in production)
 
 ```bash
-# Replace 'latest' with a date: YYYY.M.D (npm version format)
-curl https://cdn.jsdelivr.net/npm/@irfanokr/currency-api@2026.4.29/v1/currencies/usd.json
+curl https://cdn.jsdelivr.net/gh/irfanokr/currency-api@main/v1/currencies/usd.min.json
 ```
 
-### Get all currencies list
+### List all supported currencies
 
 ```bash
-curl https://cdn.jsdelivr.net/npm/@irfanokr/currency-api@latest/v1/currencies/currencies.json
+curl https://cdn.jsdelivr.net/gh/irfanokr/currency-api@main/v1/currencies/currencies.json
+```
+
+### Fallback URL (GitHub Pages)
+
+```
+https://irfanokr.github.io/currency-api/v1/currencies/{base}.json
 ```
 
 ---
@@ -157,13 +167,21 @@ Currencies relevant to Pakistan & remittance corridors:
 
 ```js
 async function convert(amount, from, to) {
-  const url = `https://cdn.jsdelivr.net/npm/@irfanokr/currency-api@latest/v1/currencies/${from.toLowerCase()}.min.json`;
+  const base = from.toLowerCase();
+  const target = to.toLowerCase();
+  const url = `https://cdn.jsdelivr.net/gh/irfanokr/currency-api@main/v1/currencies/${base}.min.json`;
   const data = await fetch(url).then(r => r.json());
-  return amount * data[from.toLowerCase()][to.toLowerCase()];
+  return amount * data[base][target];
 }
 
-// 100 USD to PKR
-convert(100, 'usd', 'pkr').then(console.log);  // 27850
+// 100 USD → PKR
+convert(100, 'usd', 'pkr').then(console.log);   // ~27850
+
+// 50000 PKR → USD
+convert(50000, 'pkr', 'usd').then(console.log);  // ~179.1
+
+// SAR → PKR (remittance)
+convert(1000, 'sar', 'pkr').then(console.log);   // ~7427
 ```
 
 ### Python
@@ -171,36 +189,43 @@ convert(100, 'usd', 'pkr').then(console.log);  // 27850
 ```python
 import urllib.request, json
 
+BASE = "https://cdn.jsdelivr.net/gh/irfanokr/currency-api@main/v1/currencies"
+
 def convert(amount, from_currency, to_currency):
-    url = f"https://cdn.jsdelivr.net/npm/@irfanokr/currency-api@latest/v1/currencies/{from_currency}.min.json"
+    url = f"{BASE}/{from_currency.lower()}.min.json"
     with urllib.request.urlopen(url) as r:
         data = json.loads(r.read())
-    return amount * data[from_currency][to_currency]
+    return amount * data[from_currency.lower()][to_currency.lower()]
 
-print(convert(100, "usd", "pkr"))  # 27850.0
+print(convert(100, "usd", "pkr"))   # ~27850.0
+print(convert(1000, "sar", "pkr"))  # ~7427.0
 ```
 
 ### PHP
 
 ```php
+define('CURRENCY_API', 'https://cdn.jsdelivr.net/gh/irfanokr/currency-api@main/v1/currencies');
+
 function convert($amount, $from, $to) {
-    $url = "https://cdn.jsdelivr.net/npm/@irfanokr/currency-api@latest/v1/currencies/{$from}.min.json";
-    $data = json_decode(file_get_contents($url), true);
+    $data = json_decode(file_get_contents(CURRENCY_API . "/{$from}.min.json"), true);
     return $amount * $data[$from][$to];
 }
 
-echo convert(100, 'usd', 'pkr');  // 27850
+echo convert(100, 'usd', 'pkr');   // ~27850
+echo convert(1000, 'sar', 'pkr');  // ~7427
 ```
 
 ---
 
-## Fallback URL
+## All Available URLs
 
-If jsDelivr is down, use the GitHub raw URL:
+| CDN | URL Pattern | Status |
+|---|---|---|
+| **jsDelivr (GitHub)** | `cdn.jsdelivr.net/gh/irfanokr/currency-api@main/v1/currencies/{base}.json` | ✅ Live now |
+| **GitHub Pages** | `irfanokr.github.io/currency-api/v1/currencies/{base}.json` | ✅ Live now |
+| **GitHub Raw** | `raw.githubusercontent.com/irfanokr/currency-api/main/v1/currencies/{base}.json` | ✅ Live now |
 
-```
-https://raw.githubusercontent.com/irfanokr/currency-api/main/v1/currencies/{base}.json
-```
+Use jsDelivr as primary (fastest CDN). GitHub Pages as fallback. GitHub Raw as last resort.
 
 ---
 
