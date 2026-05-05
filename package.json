@@ -1,6 +1,6 @@
 {
   "name": "@irfanokr/currency-api",
-  "version": "2026.5.4",
+  "version": "2026.5.5",
   "description": "Free currency exchange rates API — 170+ currencies, any base, no API key, no rate limits. Daily updated.",
   "keywords": [
     "currency",
